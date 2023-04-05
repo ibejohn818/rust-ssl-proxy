@@ -1,6 +1,7 @@
 # Dynamic SSL Proxy using Rust
 
-SSL proxy in rust using dynamic SSL termination (IE: loading SSL certs at runtime) and cache them in memory.
+SSL proxy in rust using dynamic SSL termination (IE: loading SSL certs at runtime).
+Certificates are loaded from a directory based on domain name and cached in memory.
 
 
 ## Generate test certs & hosts file
