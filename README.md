@@ -42,7 +42,7 @@ Open 3 separate terminal windows.
 
 ### Terminal 1
 ```shell
-# use an nginx server for destination proxy on port 8080
+# use an nginx server for proxy destination on port 8080
 docker run --rm -it -p 8080:80 nginx:alpine
 ```
 ### Terminal 2
