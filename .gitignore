@@ -19,3 +19,4 @@ Cargo.lock
 certs/ssl
 # generated hosts
 certs/hosts
+test-site/

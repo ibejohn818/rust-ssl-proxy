@@ -1,21 +1,18 @@
-#![allow(unused)]
-
 use std::collections::HashMap;
 use std::ops::DerefMut;
 use std::sync::Arc;
-
-
-use rustls_pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
-use tokio::io::AsyncReadExt;
 use std::sync::RwLock;
 use std::fs::File;
-use std::io;
 use std::io::{BufReader, Seek};
 use std::path::Path;
+use std::io;
+
+use rustls_pemfile::{certs, pkcs8_private_keys};
+
 use tokio_rustls::rustls::{Certificate, PrivateKey};
-use tokio_rustls::rustls::server::{ClientHello, ResolvesServerCert, ResolvesServerCertUsingSni};
+use tokio_rustls::rustls::server::{ClientHello, ResolvesServerCert};
 use tokio_rustls::rustls::sign::{any_supported_type, CertifiedKey};
-use bytes::{BytesMut, Bytes};
+
 
 pub struct CertCache(RwLock<HashMap<String, Arc<CertifiedKey>>>);
 
@@ -29,8 +26,7 @@ impl CertCache {
 
     /// save CertifiedKey to cache
     pub fn set(&self, key: String, cert: Arc<CertifiedKey>) {
-        // TODO: unwrap to checking for poisoned lock
-        let mut c = self.0.write().unwrap();
+        let mut c = self.0.write().expect("unable to obtain write lock: cert cache");
         c.deref_mut().insert(key, cert);
     }
 
@@ -81,7 +77,6 @@ fn test_resolvessl_get() {
 impl ResolvesServerCert for ResolveSSL {
     fn resolve(&self, client_hello: ClientHello) -> Option<Arc<CertifiedKey>> {
         if let Some(domain) = client_hello.server_name() {
-            // eprintln!("Client Hello Domain: {}", domain);
 
             let domain_key = domain.to_string();
 
@@ -89,7 +84,6 @@ impl ResolvesServerCert for ResolveSSL {
             match self.cache.get(&domain_key) {
                 Some(c) => {
                     eprintln!("using ssl cache");
-                    // return Some(c.clone())
                     return Some(c)
                 },
                 _ => {
@@ -134,7 +128,6 @@ fn load_keys(buf: &mut BufReader<File>) -> io::Result<Vec<PrivateKey>> {
 
 fn load_certified_key(domain: &str) -> Option<CertifiedKey> {
 
-    // let file_path = format!("/home/jhardy/projects/rust/tmp/mioserver/certs/out/{}.pem", domain);
     let file_path = format!("certs/ssl/{}.both.pem", domain);
     let cert_path = Path::new(file_path.as_str());
     let mut cert_buffer = BufReader::new(File::open(cert_path).unwrap());
@@ -151,7 +144,7 @@ fn load_certified_key(domain: &str) -> Option<CertifiedKey> {
     };
 
     // rewind buffer before key read
-    cert_buffer.rewind();
+    cert_buffer.rewind().expect("unable to rewind ssl buffer");
 
     // pull vec of PrivateKey from buffer
     let keys = match load_keys(&mut cert_buffer) {
