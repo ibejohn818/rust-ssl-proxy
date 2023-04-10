@@ -3,6 +3,9 @@
 SSL proxy in rust using dynamic SSL termination (IE: loading SSL certs at runtime).
 Certificates are loaded from a directory based on domain name and cached in memory.
 
+## TODO
+- add connection pooling to backend http clients
+
 
 ## Generate test certs & hosts file
 

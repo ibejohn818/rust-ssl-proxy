@@ -136,6 +136,7 @@ async fn proxy(
 
         let stream = TcpStream::connect(addr).await.unwrap();
 
+        eprintln!("Peer addr: {}", stream.peer_addr().unwrap().to_string());
         let (mut sender, conn) = Builder::new()
             .preserve_header_case(true)
             .title_case_headers(true)
