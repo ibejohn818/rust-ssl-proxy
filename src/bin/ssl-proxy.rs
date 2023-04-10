@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use argh::FromArgs;
 
 use std::io;
@@ -54,6 +56,8 @@ async fn main() -> io::Result<()> {
 
     let listener = TcpListener::bind(&addr).await?;
 
+    // TODO: create backend connection pool
+
     loop {
         let (stream, _peer_addr) = listener.accept().await?;
         let acceptor = acceptor.clone();
@@ -65,7 +69,8 @@ async fn main() -> io::Result<()> {
                 if let Err(err) = http1::Builder::new()
                     .preserve_header_case(true)
                     .title_case_headers(true)
-                    .serve_connection(stream, service_fn(proxy))
+                    // TODO pass `proxy()` the backend connection pool
+                    .serve_connection(stream, service_fn(move |req| {proxy(req)}))
                     .with_upgrades()
                     .await
                 {
@@ -128,6 +133,7 @@ async fn proxy(
             Ok(resp)
         }
     } else {
+        // TODO: move this to a backend connection pool
         // let host = req.uri().host().expect("uri has no host");
         // let host_in = req.uri().host().expect("unable to get host");
         let host = "0.0.0.0".to_string();
@@ -136,7 +142,8 @@ async fn proxy(
 
         let stream = TcpStream::connect(addr).await.unwrap();
 
-        eprintln!("Peer addr: {}", stream.peer_addr().unwrap().to_string());
+        // eprintln!("Peer addr: {}", stream.peer_addr().unwrap().to_string());
+
         let (mut sender, conn) = Builder::new()
             .preserve_header_case(true)
             .title_case_headers(true)
@@ -173,6 +180,7 @@ fn full<T: Into<Bytes>>(chunk: T) -> BoxBody<Bytes, hyper::Error> {
 
 async fn tunnel(mut upgraded: Upgraded, addr: String) -> std::io::Result<()> {
     // Connect to remote server
+    // TODO: move this to backend connection pool
     let mut server = TcpStream::connect(addr).await?;
 
     // Proxying data
