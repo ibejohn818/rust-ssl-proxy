@@ -9,7 +9,7 @@ domain_suffix = [
     "dev"
 ]
 
-MAX_DOMAINS = 25
+MAX_DOMAINS = 100
 
 
 class Basic(HttpUser):

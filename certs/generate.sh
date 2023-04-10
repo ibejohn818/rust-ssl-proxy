@@ -75,7 +75,7 @@ HOSTS=""
 
 # create certs and a host file
 for _dom in "${DOMAINS[@]}"; do
-  for i in {1..150}; do 
+  for i in {1..100}; do 
 
     _domain="ssl-${i}.${_dom}"
     HOSTS="${HOSTS} ${_domain}"

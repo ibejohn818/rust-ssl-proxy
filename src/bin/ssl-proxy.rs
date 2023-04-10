@@ -91,7 +91,7 @@ async fn main() -> io::Result<()> {
 async fn proxy(
     req: Request<hyper::body::Incoming>,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
-    println!("req: {:?}", req);
+    // println!("req: {:?}", req);
 
     if Method::CONNECT == req.method() {
         // Received an HTTP request like:
@@ -129,6 +129,7 @@ async fn proxy(
         }
     } else {
         // let host = req.uri().host().expect("uri has no host");
+        // let host_in = req.uri().host().expect("unable to get host");
         let host = "0.0.0.0".to_string();
         let port = req.uri().port_u16().unwrap_or(8080);
         let addr = format!("{}:{}", host, port);
@@ -146,6 +147,7 @@ async fn proxy(
             }
         });
 
+        eprintln!("proxy connect, sending...");
         let resp = sender.send_request(req).await?;
         Ok(resp.map(|b| b.boxed()))
     }
